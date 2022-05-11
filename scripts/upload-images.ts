@@ -1,4 +1,3 @@
-import { createClient, gql } from "@urql/core";
 import "dotenv/config";
 import FormData from "form-data";
 import fs from "fs";
@@ -14,15 +13,6 @@ const images = fs.readdirSync("./scripts/content");
 
 const TOKEN = process.env.CMS_TOKEN || "";
 const endpoint = process.env.CMS_ENDPOINT || "";
-
-const cmsClient = createClient({
-  url: endpoint,
-  fetchOptions: () => {
-    return {
-      headers: { Authorization: `Bearer ${TOKEN}` },
-    };
-  },
-});
 
 function parsePromptFilename(filename: string) {
   let basename;
@@ -46,7 +36,7 @@ function parsePromptFilename(filename: string) {
 }
 
 // Mutation for adding the prompt once the file has been uploaded to the CMS
-const UpdatePromptQuery = gql`
+const updatePromptMutation = `
   mutation UpdatePrompt($id: ID, $prompt: String) {
     updateAsset(where: { id: $id }, data: { prompt: $prompt }) {
       id
@@ -71,9 +61,7 @@ async function uploadImage(filename: string) {
     console.log(`Uploading: ${filePath}`);
     const uploadRes = await fetch(`${endpoint}/upload`, {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${TOKEN}`,
-      },
+      headers: { Authorization: `Bearer ${TOKEN}` },
       // @ts-ignore
       body: form,
     }).then((res: any) => res.json());
@@ -82,12 +70,13 @@ async function uploadImage(filename: string) {
     const id = uploadRes.id;
     if (id) {
       console.log(`Adding prompt "${prompt}" for id "${id}"`);
-      await cmsClient
-        .mutation(UpdatePromptQuery, { id, prompt })
-        .toPromise()
-        .then(() => {
-          console.log("Added prompt for", id);
-        });
+      await fetch(endpoint, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${TOKEN}` },
+        body: updatePromptMutation,
+      }).then(() => {
+        console.log("Added prompt for", id);
+      });
     }
   }
 }

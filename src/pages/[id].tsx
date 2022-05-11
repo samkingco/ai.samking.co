@@ -1,15 +1,35 @@
+import { GetStaticProps, InferGetStaticPropsType } from "next";
 import { useRouter } from "next/router";
+import { ParsedUrlQuery } from "querystring";
 import React from "react";
 import { DetailView } from "../components/DetailView";
+import { getAllOutputIds, getOutputById } from "../graphql";
+import { OutputByIdQuery } from "../graphql/cms";
 
-function getStringFromQuery(str?: string | string[]) {
-  if (Array.isArray(str)) return str[0];
-  return str;
+interface IParams extends ParsedUrlQuery {
+  id: string;
 }
 
-export default function PostPage() {
+export const getStaticProps: GetStaticProps<{
+  data: OutputByIdQuery;
+}> = async (context) => {
+  const { id } = context.params as IParams;
+  const data = await getOutputById({ id, cursor: id });
+  return { props: { data } };
+};
+
+export async function getStaticPaths() {
+  const ids = await getAllOutputIds(1000);
+  return {
+    paths: ids.map((id) => ({ params: { id } })),
+    fallback: false,
+  };
+}
+
+export default function PostPage({
+  data,
+}: InferGetStaticPropsType<typeof getStaticProps>) {
   const router = useRouter();
-  const { id: idParam } = router.query;
-  const id = getStringFromQuery(idParam);
-  return id ? <DetailView id={id} /> : null;
+  const { id } = router.query as IParams;
+  return id ? <DetailView id={id} prefetchedData={data} /> : null;
 }
