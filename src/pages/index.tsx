@@ -1,3 +1,4 @@
+import { GetStaticProps, InferGetStaticPropsType } from "next";
 import { useContextualRouting } from "next-use-contextual-routing";
 import Image from "next/image";
 import Link from "next/link";
@@ -6,23 +7,30 @@ import React, { useEffect, useRef, useState } from "react";
 import { DetailView } from "../components/DetailView";
 import { Modal } from "../components/Modal";
 import { SocialMeta } from "../components/SocialMeta";
-import { OutputsQueryVariables, useOutputsQuery } from "../graphql/cms";
+import { getOutputs } from "../graphql";
+import { OutputsQuery } from "../graphql/cms";
 import { useIntersectionObserver } from "../hooks/useIntersectionObserver";
 import usePreviousValue from "../hooks/usePreviousValue";
 
+const PAGE_SIZE = 1000;
+
 interface GridProps {
-  variables: OutputsQueryVariables;
+  queryResult: OutputsQuery;
   isLastPage: boolean;
+  isFetching: boolean;
   onLoadMore: (endCursor: string | null | undefined) => void;
 }
 
-function GridContents({ variables, isLastPage, onLoadMore }: GridProps) {
+function GridContents({
+  queryResult,
+  isLastPage,
+  isFetching,
+  onLoadMore,
+}: GridProps) {
   const { makeContextualHref } = useContextualRouting();
-  const [outputsQuery] = useOutputsQuery({ variables });
-  const { data, fetching } = outputsQuery;
-  const assets = data && data.assetsConnection;
-  const hasNextPage = assets?.pageInfo.hasNextPage;
-  const endCursor = assets?.pageInfo.endCursor;
+  const assets = queryResult.assetsConnection;
+  const hasNextPage = assets.pageInfo.hasNextPage;
+  const endCursor = assets.pageInfo.endCursor;
 
   const loadMoreRef = useRef(null);
   const { isVisible } = useIntersectionObserver(loadMoreRef, {});
@@ -33,7 +41,7 @@ function GridContents({ variables, isLastPage, onLoadMore }: GridProps) {
     // 1. load more intersection comes into view
     // 2. and we're not loading more already
     // 3. and there are more pages to load
-    if (!wasVisible && isVisible && hasNextPage && !fetching) {
+    if (!wasVisible && isVisible && hasNextPage && !isFetching) {
       onLoadMore(endCursor);
     }
   }, [wasVisible, isVisible, hasNextPage, endCursor, onLoadMore]);
@@ -62,19 +70,29 @@ function GridContents({ variables, isLastPage, onLoadMore }: GridProps) {
         ))}
       {isLastPage && assets && hasNextPage && endCursor && (
         <div ref={loadMoreRef} className="load-more-area">
-          <button onClick={() => onLoadMore(endCursor)}>load more</button>
+          {isFetching ? (
+            <p>loading...</p>
+          ) : (
+            <button onClick={() => onLoadMore(endCursor)}>load more</button>
+          )}
         </div>
       )}
-      {fetching && <p>loading...</p>}
     </>
   );
 }
 
-export default function IndexPage() {
-  const first = 100;
-  const [pageVariables, setPageVariables] = useState<OutputsQueryVariables[]>([
-    { first },
-  ]);
+export const getStaticProps: GetStaticProps<{
+  initialQuery: OutputsQuery;
+}> = async () => {
+  const initialQuery = await getOutputs({ first: PAGE_SIZE });
+  return { props: { initialQuery } };
+};
+
+export default function IndexPage({
+  initialQuery,
+}: InferGetStaticPropsType<typeof getStaticProps>) {
+  const [pages, setPages] = useState<OutputsQuery[]>([initialQuery]);
+  const [fetching, setFetching] = useState(false);
 
   const router = useRouter();
   const { returnHref } = useContextualRouting();
@@ -102,13 +120,18 @@ export default function IndexPage() {
         <p>All outputs are currently from MidJourney</p>
 
         <section className="outputs-grid">
-          {pageVariables.map((variables, i) => (
+          {pages.map((page, i) => (
             <GridContents
-              key={variables.after ? variables.after : `grid_${i}`}
-              variables={variables}
-              isLastPage={i === pageVariables.length - 1}
+              key={page.assetsConnection.pageInfo.endCursor || `grid_${i}`}
+              queryResult={page}
+              isLastPage={i === pages.length - 1}
+              isFetching={fetching}
               onLoadMore={(after) => {
-                setPageVariables([...pageVariables, { after, first }]);
+                setFetching(true);
+                getOutputs({ first: PAGE_SIZE, after }).then((page) => {
+                  setFetching(false);
+                  setPages([...pages, page]);
+                });
               }}
             />
           ))}
@@ -119,7 +142,9 @@ export default function IndexPage() {
           isOpen={Boolean(!!router.query.id && modalId)}
           onClose={onModalClose}
         >
-          {modalId && <DetailView id={modalId} onClose={onModalClose} />}
+          {modalId && (
+            <DetailView id={modalId} onClose={onModalClose} isModal />
+          )}
         </Modal>
       </main>
     </div>

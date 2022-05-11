@@ -2,41 +2,55 @@ import { useContextualRouting } from "next-use-contextual-routing";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useEffect } from "react";
-import { useOutputWithNavQuery } from "../graphql/cms";
+import { useEffect, useState } from "react";
+import { getOutputById } from "../graphql";
+import { OutputByIdQuery } from "../graphql/cms";
 import { SocialMeta } from "./SocialMeta";
 
 interface Props {
+  prefetchedData?: OutputByIdQuery;
   id: string;
   onClose?: () => void;
   closeHref?: string;
+  isModal?: boolean;
 }
 
-export function DetailView({ id, onClose, closeHref }: Props) {
+export function DetailView({
+  prefetchedData,
+  id,
+  onClose,
+  closeHref,
+  isModal,
+}: Props) {
   const router = useRouter();
   const { makeContextualHref } = useContextualRouting();
+  const [data, setData] = useState(prefetchedData);
 
-  const [postQuery] = useOutputWithNavQuery({
-    variables: { id, cursor: id },
-    pause: !id,
-  });
+  useEffect(() => {
+    if (!prefetchedData || prefetchedData.asset?.id !== id) {
+      getOutputById({ id, cursor: id }).then((data) => setData(data));
+    }
+  }, [prefetchedData, id]);
 
-  const { data } = postQuery;
   const asset = data && data.asset;
   const prevId =
-    data && data.prev && data.prev.length > 0 ? data.prev[0].id : null;
+    isModal && data && data.prev && data.prev.length > 0
+      ? data.prev[0].id
+      : null;
   const nextId =
-    data && data.next && data.next.length > 0 ? data.next[0].id : null;
+    isModal && data && data.next && data.next.length > 0
+      ? data.next[0].id
+      : null;
 
   useEffect(() => {
     const downHandler = ({ key }: KeyboardEvent) => {
       if (["ArrowLeft", "p"].includes(key) && prevId) {
-        router.push(makeContextualHref({ id: prevId }), `/${prevId}`, {
+        router.replace(makeContextualHref({ id: prevId }), `/${prevId}`, {
           scroll: false,
         });
       }
       if (["ArrowRight", "n"].includes(key) && nextId) {
-        router.push(makeContextualHref({ id: nextId }), `/${nextId}`, {
+        router.replace(makeContextualHref({ id: nextId }), `/${nextId}`, {
           scroll: false,
         });
       }
@@ -85,26 +99,32 @@ export function DetailView({ id, onClose, closeHref }: Props) {
         )}
 
         <p className="detail-page-prev">
-          {prevId && (
+          {prevId ? (
             <Link
               href={makeContextualHref({ id: prevId })}
               as={`/${prevId}`}
               scroll={false}
+              replace
             >
               <a>(P)</a>
             </Link>
+          ) : (
+            <span className="invisible">(P)</span>
           )}
         </p>
 
         <p className="detail-page-next">
-          {nextId && (
+          {nextId ? (
             <Link
               href={makeContextualHref({ id: nextId })}
               as={`/${nextId}`}
               scroll={false}
+              replace
             >
               <a>(N)</a>
             </Link>
+          ) : (
+            <span className="invisible">(N)</span>
           )}
         </p>
       </div>

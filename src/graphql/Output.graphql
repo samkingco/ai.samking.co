@@ -1,9 +1,0 @@
-query Output($id: ID) {
-  asset(where: { id: $id }) {
-    id
-    prompt
-    url
-    width
-    height
-  }
-}

@@ -1,11 +1,9 @@
-import { gql } from 'urql';
-import * as Urql from 'urql';
+import { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/core';
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
 export type MakeOptional<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]?: Maybe<T[SubKey]> };
 export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]: Maybe<T[SubKey]> };
-export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
 /** All built-in and custom scalars, mapped to their actual values */
 export type Scalars = {
   ID: string;
@@ -2785,100 +2783,32 @@ export type UpdatePromptMutationVariables = Exact<{
 
 export type UpdatePromptMutation = { readonly __typename?: 'Mutation', readonly updateAsset?: { readonly __typename?: 'Asset', readonly id: string, readonly prompt?: string | null } | null };
 
-export type OutputQueryVariables = Exact<{
-  id?: InputMaybe<Scalars['ID']>;
-}>;
-
-
-export type OutputQuery = { readonly __typename?: 'Query', readonly asset?: { readonly __typename?: 'Asset', readonly id: string, readonly prompt?: string | null, readonly url: string, readonly width?: number | null, readonly height?: number | null } | null };
-
-export type OutputWithNavQueryVariables = Exact<{
-  id?: InputMaybe<Scalars['ID']>;
-  cursor?: InputMaybe<Scalars['String']>;
-}>;
-
-
-export type OutputWithNavQuery = { readonly __typename?: 'Query', readonly asset?: { readonly __typename?: 'Asset', readonly id: string, readonly prompt?: string | null, readonly url: string, readonly width?: number | null, readonly height?: number | null } | null, readonly prev: ReadonlyArray<{ readonly __typename?: 'Asset', readonly id: string }>, readonly next: ReadonlyArray<{ readonly __typename?: 'Asset', readonly id: string }> };
-
 export type OutputsQueryVariables = Exact<{
   first: Scalars['Int'];
   after?: InputMaybe<Scalars['String']>;
 }>;
 
 
-export type OutputsQuery = { readonly __typename?: 'Query', readonly assetsConnection: { readonly __typename?: 'AssetConnection', readonly pageInfo: { readonly __typename?: 'PageInfo', readonly hasNextPage: boolean, readonly endCursor?: string | null, readonly startCursor?: string | null, readonly pageSize?: number | null }, readonly edges: ReadonlyArray<{ readonly __typename?: 'AssetEdge', readonly node: { readonly __typename?: 'Asset', readonly id: string, readonly prompt?: string | null, readonly url: string, readonly width?: number | null, readonly height?: number | null } }> } };
+export type OutputsQuery = { readonly __typename?: 'Query', readonly assetsConnection: { readonly __typename?: 'AssetConnection', readonly pageInfo: { readonly __typename?: 'PageInfo', readonly hasNextPage: boolean, readonly endCursor?: string | null, readonly startCursor?: string | null, readonly pageSize?: number | null }, readonly aggregate: { readonly __typename?: 'Aggregate', readonly count: number }, readonly edges: ReadonlyArray<{ readonly __typename?: 'AssetEdge', readonly node: { readonly __typename?: 'Asset', readonly id: string, readonly prompt?: string | null, readonly url: string, readonly width?: number | null, readonly height?: number | null } }> } };
+
+export type OutputByIdQueryVariables = Exact<{
+  id?: InputMaybe<Scalars['ID']>;
+  cursor?: InputMaybe<Scalars['String']>;
+}>;
 
 
-export const UpdatePromptDocument = gql`
-    mutation UpdatePrompt($id: ID, $prompt: String) {
-  updateAsset(where: {id: $id}, data: {prompt: $prompt}) {
-    id
-    prompt
-  }
-}
-    `;
+export type OutputByIdQuery = { readonly __typename?: 'Query', readonly asset?: { readonly __typename?: 'Asset', readonly id: string, readonly prompt?: string | null, readonly url: string, readonly width?: number | null, readonly height?: number | null } | null, readonly prev: ReadonlyArray<{ readonly __typename?: 'Asset', readonly id: string }>, readonly next: ReadonlyArray<{ readonly __typename?: 'Asset', readonly id: string }> };
 
-export function useUpdatePromptMutation() {
-  return Urql.useMutation<UpdatePromptMutation, UpdatePromptMutationVariables>(UpdatePromptDocument);
-};
-export const OutputDocument = gql`
-    query Output($id: ID) {
-  asset(where: {id: $id}) {
-    id
-    prompt
-    url
-    width
-    height
-  }
-}
-    `;
+export type AllOutputIdsQueryVariables = Exact<{
+  first: Scalars['Int'];
+  after?: InputMaybe<Scalars['String']>;
+}>;
 
-export function useOutputQuery(options?: Omit<Urql.UseQueryArgs<OutputQueryVariables>, 'query'>) {
-  return Urql.useQuery<OutputQuery>({ query: OutputDocument, ...options });
-};
-export const OutputWithNavDocument = gql`
-    query OutputWithNav($id: ID, $cursor: String) {
-  asset(where: {id: $id}) {
-    id
-    prompt
-    url
-    width
-    height
-  }
-  prev: assets(orderBy: createdAt_DESC, last: 1, before: $cursor) {
-    id
-  }
-  next: assets(orderBy: createdAt_DESC, first: 1, after: $cursor) {
-    id
-  }
-}
-    `;
 
-export function useOutputWithNavQuery(options?: Omit<Urql.UseQueryArgs<OutputWithNavQueryVariables>, 'query'>) {
-  return Urql.useQuery<OutputWithNavQuery>({ query: OutputWithNavDocument, ...options });
-};
-export const OutputsDocument = gql`
-    query Outputs($first: Int!, $after: String) {
-  assetsConnection(orderBy: createdAt_DESC, first: $first, after: $after) {
-    pageInfo {
-      hasNextPage
-      endCursor
-      startCursor
-      pageSize
-    }
-    edges {
-      node {
-        id
-        prompt
-        url
-        width
-        height
-      }
-    }
-  }
-}
-    `;
+export type AllOutputIdsQuery = { readonly __typename?: 'Query', readonly assetsConnection: { readonly __typename?: 'AssetConnection', readonly pageInfo: { readonly __typename?: 'PageInfo', readonly hasNextPage: boolean, readonly endCursor?: string | null }, readonly aggregate: { readonly __typename?: 'Aggregate', readonly count: number }, readonly edges: ReadonlyArray<{ readonly __typename?: 'AssetEdge', readonly node: { readonly __typename?: 'Asset', readonly id: string } }> } };
 
-export function useOutputsQuery(options: Omit<Urql.UseQueryArgs<OutputsQueryVariables>, 'query'>) {
-  return Urql.useQuery<OutputsQuery>({ query: OutputsDocument, ...options });
-};
+
+export const UpdatePromptDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdatePrompt"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"prompt"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"updateAsset"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"where"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}]}},{"kind":"Argument","name":{"kind":"Name","value":"data"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"prompt"},"value":{"kind":"Variable","name":{"kind":"Name","value":"prompt"}}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"prompt"}}]}}]}}]} as unknown as DocumentNode<UpdatePromptMutation, UpdatePromptMutationVariables>;
+export const OutputsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"Outputs"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"first"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"after"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"assetsConnection"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"orderBy"},"value":{"kind":"EnumValue","value":"createdAt_DESC"}},{"kind":"Argument","name":{"kind":"Name","value":"first"},"value":{"kind":"Variable","name":{"kind":"Name","value":"first"}}},{"kind":"Argument","name":{"kind":"Name","value":"after"},"value":{"kind":"Variable","name":{"kind":"Name","value":"after"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"pageInfo"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"hasNextPage"}},{"kind":"Field","name":{"kind":"Name","value":"endCursor"}},{"kind":"Field","name":{"kind":"Name","value":"startCursor"}},{"kind":"Field","name":{"kind":"Name","value":"pageSize"}}]}},{"kind":"Field","name":{"kind":"Name","value":"aggregate"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"count"}}]}},{"kind":"Field","name":{"kind":"Name","value":"edges"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"node"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"prompt"}},{"kind":"Field","name":{"kind":"Name","value":"url"}},{"kind":"Field","name":{"kind":"Name","value":"width"}},{"kind":"Field","name":{"kind":"Name","value":"height"}}]}}]}}]}}]}}]} as unknown as DocumentNode<OutputsQuery, OutputsQueryVariables>;
+export const OutputByIdDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"OutputById"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"cursor"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"asset"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"where"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"prompt"}},{"kind":"Field","name":{"kind":"Name","value":"url"}},{"kind":"Field","name":{"kind":"Name","value":"width"}},{"kind":"Field","name":{"kind":"Name","value":"height"}}]}},{"kind":"Field","alias":{"kind":"Name","value":"prev"},"name":{"kind":"Name","value":"assets"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"orderBy"},"value":{"kind":"EnumValue","value":"createdAt_DESC"}},{"kind":"Argument","name":{"kind":"Name","value":"last"},"value":{"kind":"IntValue","value":"1"}},{"kind":"Argument","name":{"kind":"Name","value":"before"},"value":{"kind":"Variable","name":{"kind":"Name","value":"cursor"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}},{"kind":"Field","alias":{"kind":"Name","value":"next"},"name":{"kind":"Name","value":"assets"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"orderBy"},"value":{"kind":"EnumValue","value":"createdAt_DESC"}},{"kind":"Argument","name":{"kind":"Name","value":"first"},"value":{"kind":"IntValue","value":"1"}},{"kind":"Argument","name":{"kind":"Name","value":"after"},"value":{"kind":"Variable","name":{"kind":"Name","value":"cursor"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}}]} as unknown as DocumentNode<OutputByIdQuery, OutputByIdQueryVariables>;
+export const AllOutputIdsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"AllOutputIds"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"first"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"after"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"assetsConnection"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"orderBy"},"value":{"kind":"EnumValue","value":"createdAt_DESC"}},{"kind":"Argument","name":{"kind":"Name","value":"first"},"value":{"kind":"Variable","name":{"kind":"Name","value":"first"}}},{"kind":"Argument","name":{"kind":"Name","value":"after"},"value":{"kind":"Variable","name":{"kind":"Name","value":"after"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"pageInfo"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"hasNextPage"}},{"kind":"Field","name":{"kind":"Name","value":"endCursor"}}]}},{"kind":"Field","name":{"kind":"Name","value":"aggregate"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"count"}}]}},{"kind":"Field","name":{"kind":"Name","value":"edges"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"node"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}}]}}]}}]} as unknown as DocumentNode<AllOutputIdsQuery, AllOutputIdsQueryVariables>;

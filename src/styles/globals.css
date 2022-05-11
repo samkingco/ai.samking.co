@@ -203,6 +203,10 @@ button:focus {
   text-align: center;
 }
 
+.invisible {
+  opacity: 0;
+}
+
 @media (orientation: portrait) {
   .detail-page {
     grid-template-areas:
