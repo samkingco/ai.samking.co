@@ -7,7 +7,7 @@ import path from "path";
 // Filenames are formatted like `{001} - {prompt}.png`
 // Start and end number allows the script to batch upload them using the number
 // at the start of the filename
-const START_NUMBER = 114;
+const START_NUMBER = 177;
 const END_NUMBER = 200;
 const images = fs.readdirSync("./scripts/content");
 
@@ -73,7 +73,10 @@ async function uploadImage(filename: string) {
       await fetch(endpoint, {
         method: "POST",
         headers: { Authorization: `Bearer ${TOKEN}` },
-        body: updatePromptMutation,
+        body: JSON.stringify({
+          query: updatePromptMutation,
+          variables: { id, prompt },
+        }),
       }).then(() => {
         console.log("Added prompt for", id);
       });
